@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Rust build output
+src-tauri/target/
+target/
+
+# Tauri bundler output (installers, bundles, updater artifacts)
+src-tauri/target/**/bundle/
+src-tauri/target/**/updater/
+
+# Rust package manager
+Cargo.lock
+src-tauri/Cargo.lock
+
+# Rust compiled files
+*.o
+*.so
+*.dll
+*.exe
+*.rlib
+
+# Tauri generated files
+src-tauri/gen/
+src-tauri/.cargo/
