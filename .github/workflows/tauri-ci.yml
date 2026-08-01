@@ -1,0 +1,157 @@
+name: "Tauri CI"
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: ["main"]
+
+jobs:
+  frontend-unit-tests:
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.head_commit.modified, ','), 'src/') ||
+      contains(join(github.event.head_commit.modified, ','), 'package.json') ||
+      contains(join(github.event.head_commit.modified, ','), 'vite.config') ||
+      contains(join(github.event.head_commit.modified, ','), 'tsconfig')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  backend-unit-tests:
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.head_commit.modified, ','), 'src-tauri/') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.toml') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.lock')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - name: Rustfmt
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Rust unit tests
+        run: cargo test --all --all-features
+
+  build:
+    needs: [frontend-unit-tests, backend-unit-tests]
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    if: |
+      contains(join(github.event.head_commit.modified, ','), 'src/') ||
+      contains(join(github.event.head_commit.modified, ','), 'src-tauri/') ||
+      contains(join(github.event.head_commit.modified, ','), 'package.json') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.toml') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.lock')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - run: pnpm install
+
+      - name: Install Linux deps
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            libappindicator3-dev \
+            librsvg2-dev
+
+      - name: Build Tauri app
+        run: pnpm tauri build
+
+      - name: Upload built app
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-${{ matrix.platform }}
+          path: src-tauri/target/release/bundle/
+
+  integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.head_commit.modified, ','), 'src-tauri/') ||
+      contains(join(github.event.head_commit.modified, ','), 'tests/') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.toml') ||
+      contains(join(github.event.head_commit.modified, ','), 'Cargo.lock')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - name: Download built app
+        uses: actions/download-artifact@v4
+        with:
+          name: tauri-ubuntu-latest
+          path: ./built-app
+
+      - name: Rust integration tests
+        run: cargo test --all --all-features
+
+  e2e-tests:
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.head_commit.modified, ','), 'src/') ||
+      contains(join(github.event.head_commit.modified, ','), 'src-tauri/') ||
+      contains(join(github.event.head_commit.modified, ','), 'e2e/') ||
+      contains(join(github.event.head_commit.modified, ','), 'playwright.config')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm playwright install --with-deps
+
+      - name: Download built app
+        uses: actions/download-artifact@v4
+        with:
+          name: tauri-ubuntu-latest
+          path: ./built-app
+
+      - name: Run Playwright E2E tests
+        env:
+          TAURI_BINARY_PATH: ./built-app
+        run: pnpm playwright test
