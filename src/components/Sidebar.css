@@ -9,21 +9,19 @@
 }
 
 .sidebar.open {
-  width: 220px;
+  width: auto;
 }
 
 .sidebar.closed {
-  width: 70px;
+  width: auto;
 }
 
-/* Menu list container */
 .menu {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-/* Shared menu item style */
 .menu-item {
   display: flex;
   align-items: center;
@@ -45,7 +43,6 @@
   color: #4ade80;
 }
 
-/* Hamburger toggle styled like a menu item */
 .menu-toggle {
   display: flex;
   align-items: center;
