@@ -5,10 +5,10 @@ import {
   CheckSquare,
   BarChart2,
   Settings,
-  ChevronLeft,
-  ChevronRight
+  Menu
 } from "lucide-react";
 import { Page } from "../App";
+import "./Sidebar.css";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -27,54 +27,27 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onToggle, onNavigate, currentPage }
   ];
 
   return (
-    <div
-      style={{
-        width: isOpen ? "220px" : "70px",
-        transition: "width 0.25s",
-        background: "#1e1e1e",
-        color: "white",
-        padding: "0.5rem",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
-      {/* Toggle Button */}
-      <button
-        onClick={onToggle}
-        style={{
-          background: "none",
-          border: "none",
-          color: "white",
-          marginBottom: "1rem",
-          cursor: "pointer",
-          alignSelf: isOpen ? "flex-end" : "center"
-        }}
-      >
-        {isOpen ? <ChevronLeft /> : <ChevronRight />}
-      </button>
-
-      {/* Menu Items */}
-      {menuItems.map((item) => (
-        <button
-          key={item.page}
-          onClick={() => onNavigate(item.page)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            background: "none",
-            border: "none",
-            color: currentPage === item.page ? "#4ade80" : "white",
-            padding: "0.75rem",
-            cursor: "pointer",
-            width: "100%",
-            textAlign: "left"
-          }}
-        >
-          {item.icon}
-          {isOpen && <span>{item.label}</span>}
+    <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
+      
+      <div className="menu">
+        {/* Hamburger Toggle */}
+        <button className="menu-toggle" onClick={onToggle}>
+          <Menu size={20} />
+          {isOpen && <span>Menu</span>}
         </button>
-      ))}
+
+        {/* Menu Items */}
+        {menuItems.map((item) => (
+          <button
+            key={item.page}
+            onClick={() => onNavigate(item.page)}
+            className={`menu-item ${currentPage === item.page ? "active" : ""}`}
+          >
+            {item.icon}
+            {isOpen && <span>{item.label}</span>}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
