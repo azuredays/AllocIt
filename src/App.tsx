@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { JSX, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -12,28 +12,40 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState<Page>("home");
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case "profile": return <ProfilePage />;
-      case "tasks": return <TasksPage />;
-      case "statistics": return <StatisticsPage />;
-      case "settings": return <SettingsPage />;
-      default: return <HomePage />;
-    }
+  const pages: Record<Page, JSX.Element> = {
+    home: <HomePage />,
+    profile: <ProfilePage />,
+    tasks: <TasksPage />,
+    statistics: <StatisticsPage />,
+    settings: <SettingsPage />,
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
       <Sidebar
         isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggle={() => setIsSidebarOpen((s) => !s)}
         onNavigate={setCurrentPage}
         currentPage={currentPage}
       />
 
-      <div style={{ flex: 1, padding: "1rem" }}>
-        {renderPage()}
-      </div>
+      <main
+        style={{
+          flex: 1,
+          padding: "1rem",
+          overflowY: "auto", // allows main content to scroll independently
+          overflowX: "hidden",
+          height: "100%",
+        }}
+      >
+        {pages[currentPage]}
+      </main>
     </div>
   );
 }

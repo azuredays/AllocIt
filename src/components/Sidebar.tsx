@@ -1,12 +1,6 @@
 import { FC } from "react";
-import {
-  Home,
-  User,
-  CheckSquare,
-  BarChart2,
-  Settings,
-  Menu
-} from "lucide-react";
+import { Home, User, CheckSquare, BarChart2, Settings, Menu } from "lucide-react";
+import SidebarItem from "./SidebarItem";
 import { Page } from "../App";
 import "./Sidebar.css";
 
@@ -17,38 +11,43 @@ interface SidebarProps {
   currentPage: Page;
 }
 
-const Sidebar: FC<SidebarProps> = ({ isOpen, onToggle, onNavigate, currentPage }) => {
-  const menuItems = [
-    { label: "Home", page: "home" as Page, icon: <Home size={20} /> },
-    { label: "My Profile", page: "profile" as Page, icon: <User size={20} /> },
-    { label: "Tasks", page: "tasks" as Page, icon: <CheckSquare size={20} /> },
-    { label: "Statistics", page: "statistics" as Page, icon: <BarChart2 size={20} /> },
-    { label: "Settings", page: "settings" as Page, icon: <Settings size={20} /> },
-  ];
+const menuItems = [
+  { label: "Home", page: "home" as Page, icon: Home },
+  { label: "Tasks", page: "tasks" as Page, icon: CheckSquare },
+  { label: "Statistics", page: "statistics" as Page, icon: BarChart2 },
+  { label: "My Profile", page: "profile" as Page, icon: User },
+  { label: "Settings", page: "settings" as Page, icon: Settings },
+];
 
+const Sidebar: FC<SidebarProps> = ({ isOpen, onToggle, onNavigate, currentPage }) => {
   return (
-    <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
-      
+    <aside className={`sidebar ${isOpen ? "open" : "closed"}`} role="navigation" aria-label="Main">
       <div className="menu">
-        {/* Hamburger Toggle */}
-        <button className="menu-toggle" onClick={onToggle}>
+        <button
+          className="menu-toggle"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-label="Toggle sidebar"
+        >
           <Menu size={20} />
-          {isOpen && <span>Menu</span>}
+          <span className="menu-label">{isOpen ? "Menu" : ""}</span>
         </button>
 
-        {/* Menu Items */}
-        {menuItems.map((item) => (
-          <button
-            key={item.page}
-            onClick={() => onNavigate(item.page)}
-            className={`menu-item ${currentPage === item.page ? "active" : ""}`}
-          >
-            {item.icon}
-            {isOpen && <span>{item.label}</span>}
-          </button>
-        ))}
+        <nav className="menu-list" aria-label="Primary">
+          {menuItems.map((item) => (
+            <SidebarItem
+              key={item.page}
+              label={item.label}
+              page={item.page}
+              Icon={item.icon}
+              isOpen={isOpen}
+              active={currentPage === item.page}
+              onClick={(p) => onNavigate(p as Page)}
+            />
+          ))}
+        </nav>
       </div>
-    </div>
+    </aside>
   );
 };
 
